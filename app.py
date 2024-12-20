@@ -1,8 +1,19 @@
 import streamlit as st
 import pandas as pd
 import re, ipaddress
-from ping3 import ping
+import subprocess
 
+def ping_host(host):
+    try:
+        result = subprocess.run(
+            ["ping", "-n", "1", host],  # Cambia "-c" por "-n" en Windows
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        return result.returncode == 0  # Devuelve True si el ping fue exitoso
+    except Exception as e:
+        return False
 
 #config
 st.set_page_config(page_title="Scanip", page_icon="🤖", layout="wide")
@@ -42,8 +53,8 @@ with st.container():
                     row = r - inicio + 1
                     host = red + str(r)
                     df.at[row, headers[0]] = host
-                    rst = ping(host, timeout=1)
-                    if isinstance(rst, float):
+                    rst = ping_host(host)
+                    if rst:
                         df.at[row, headers[1]] = 'OK'
                     else:
                         df.at[row, headers[1]] = 'NO RESPONDE'
